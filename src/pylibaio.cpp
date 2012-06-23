@@ -36,9 +36,8 @@ pyaio_write (PyObject* dummy, PyObject* args) {
         char* buf = PyString_AS_STRING (buf_obj);
         Py_ssize_t buf_size = PyString_GET_SIZE(buf_obj);
 
-        char* copied_buf = new char[buf_size + 1];
+        char* copied_buf = new char[buf_size];
         memcpy(copied_buf, buf, buf_size);
-        copied_buf[buf_size + 1] = '\0';
 
         // Parse offset
         long offset = PyInt_AS_LONG(offset_obj);
@@ -47,6 +46,8 @@ pyaio_write (PyObject* dummy, PyObject* args) {
     }
 
     int ret = io_submit(io_ctx, lst_len, iocbs);
+
+    delete [] iocbs;
 
     return Py_BuildValue ("i", ret);
 }
@@ -79,13 +80,15 @@ pyaio_read (PyObject* dummy, PyObject* args) {
         long offset = PyInt_AS_LONG(offset_obj);
         long cnt = PyInt_AS_LONG(count_obj);
 
-        char* buf = new char[cnt + 1];
-        memset(buf, 0, cnt + 1);
+        char* buf = new char[cnt];
+        memset(buf, 0, cnt);
 
         io_prep_pread (cb, fd, buf, cnt, offset);
     }
 
     int ret = io_submit(io_ctx, lst_len, iocbs);
+
+    delete [] iocbs;
 
     return Py_BuildValue ("i", ret);
 }
@@ -111,11 +114,11 @@ pyaio_get_events (PyObject* dummy, PyObject* args) {
         io_event& eve = events[i];
         iocb* cb = eve.obj;
         PyList_Append(ret, Py_BuildValue("(iiO)", cb->aio_lio_opcode, cb->u.c.offset, PyString_FromStringAndSize ((char*)cb->u.c.buf, cb->u.c.nbytes)));
-        delete (char*)cb->u.c.buf;
+        delete [] (char*)cb->u.c.buf;
         delete cb;
     }
 
-    delete events;
+    delete [] events;
     
     return ret;
 }

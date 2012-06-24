@@ -20,10 +20,10 @@ pyaio_write (PyObject* dummy, PyObject* args) {
         return Py_None;
     }
 
-    Py_ssize_t lst_len = PyList_GET_SIZE(bufs_and_offsets);
+    long lst_len = PyList_GET_SIZE(bufs_and_offsets);
     iocb** iocbs = new iocb*[lst_len];
 
-    for (Py_ssize_t i = 0; i < lst_len; ++i) {
+    for (long i = 0; i < lst_len; ++i) {
         iocb* cb = new iocb;
         iocbs[i] = cb;
 
@@ -34,7 +34,7 @@ pyaio_write (PyObject* dummy, PyObject* args) {
 
         // Copy buffer
         char* buf = PyString_AS_STRING (buf_obj);
-        Py_ssize_t buf_size = PyString_GET_SIZE(buf_obj);
+        long buf_size = PyString_GET_SIZE(buf_obj);
 
         char* copied_buf = new char[buf_size];
         memcpy(copied_buf, buf, buf_size);
@@ -65,10 +65,10 @@ pyaio_read (PyObject* dummy, PyObject* args) {
         return Py_None;
     }
 
-    Py_ssize_t lst_len = PyList_GET_SIZE(offsets_and_counts);
+    long lst_len = PyList_GET_SIZE(offsets_and_counts);
     iocb** iocbs = new iocb*[lst_len];
 
-    for (Py_ssize_t i = 0; i < lst_len; ++i) {
+    for (long i = 0; i < lst_len; ++i) {
         iocb* cb = new iocb;
         iocbs[i] = cb;
 

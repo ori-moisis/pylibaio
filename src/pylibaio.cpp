@@ -6,21 +6,21 @@ static io_context_t io_ctx = 0;
 
 
 PyDoc_STRVAR (write_doc_str, 
-              "write(fd, buffers_and_offsets)\n"
-              "  buffers_and_offsets is a list of tuples, each one with a buffer and an offset specifiying where to write it");
+              "write(fd, offsets_and_buffers)\n"
+              "  offsets_and_buffers is a list of tuples, each one with an offset and a buffer to write to that offset");
 
 PyObject*
 pyaio_write (PyObject* dummy, PyObject* args) {
     int fd = 0;
-    PyObject* bufs_and_offsets;
+    PyObject* offsets_and_bufs;
 
-    PyArg_ParseTuple(args, "iO", &fd, &bufs_and_offsets);
+    PyArg_ParseTuple(args, "iO", &fd, &offsets_and_bufs);
     
     if (PyList_Check(bufs_and_offsets) == 0) {
         return Py_None;
     }
 
-    long lst_len = PyList_GET_SIZE(bufs_and_offsets);
+    long lst_len = PyList_GET_SIZE(offsets_and_bufs);
     iocb** iocbs = new iocb*[lst_len];
 
     for (long i = 0; i < lst_len; ++i) {
@@ -28,9 +28,9 @@ pyaio_write (PyObject* dummy, PyObject* args) {
         iocbs[i] = cb;
 
         // Parse element
-        PyObject* elem = PyList_GET_ITEM (bufs_and_offsets, i);
-        PyObject* buf_obj = PyTuple_GET_ITEM(elem, 0);
-        PyObject* offset_obj = PyTuple_GET_ITEM(elem, 1);
+        PyObject* elem = PyList_GET_ITEM (offsets_and_bufs, i);
+        PyObject* offset_obj = PyTuple_GET_ITEM(elem, 0);
+        PyObject* buf_obj = PyTuple_GET_ITEM(elem, 1);
 
         // Copy buffer
         char* buf = PyString_AS_STRING (buf_obj);
@@ -93,16 +93,17 @@ pyaio_read (PyObject* dummy, PyObject* args) {
     return Py_BuildValue ("i", ret);
 }
 
-PyDoc_STRVAR (get_events_doc_str, "get_events(max_events) -> string");
+PyDoc_STRVAR (get_events_doc_str, "get_events(min_events, max_events) -> [events]");
 
 PyObject*
 pyaio_get_events (PyObject* dummy, PyObject* args) {
     int max_events = 0;
+    int min_events = 0;
 
-    PyArg_ParseTuple (args, "i", &max_events);
+    PyArg_ParseTuple (args, "ii", &min_events, &max_events);
 
     io_event* events = new io_event[max_events];
-    int res = io_getevents (io_ctx, 1, max_events, events, NULL);
+    int res = io_getevents (io_ctx, min_events, max_events, events, NULL);
     if (res == 0) {
         delete events;
         return Py_None;

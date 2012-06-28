@@ -16,7 +16,7 @@ pyaio_write (PyObject* dummy, PyObject* args) {
 
     PyArg_ParseTuple(args, "iO", &fd, &offsets_and_bufs);
     
-    if (PyList_Check(bufs_and_offsets) == 0) {
+    if (PyList_Check(offsets_and_bufs) == 0) {
         return Py_None;
     }
 

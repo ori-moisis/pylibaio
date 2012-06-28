@@ -114,7 +114,11 @@ pyaio_get_events (PyObject* dummy, PyObject* args) {
     for (int i = 0; i < res; ++i) {
         io_event& eve = events[i];
         iocb* cb = eve.obj;
-        PyList_Append(ret, Py_BuildValue("(iiO)", cb->aio_lio_opcode, cb->u.c.offset, PyString_FromStringAndSize ((char*)cb->u.c.buf, cb->u.c.nbytes)));
+        PyObject* buf_obj = Py_None;
+        if (cb->aio_lio_opcode == IO_CMD_PREAD) {
+            buf_obj = PyString_FromStringAndSize ((char*)cb->u.c.buf, cb->u.c.nbytes);
+        }
+        PyList_Append(ret, Py_BuildValue("(iiO)", cb->aio_lio_opcode, cb->u.c.offset, buf_obj));
         delete [] (char*)cb->u.c.buf;
         delete cb;
     }
